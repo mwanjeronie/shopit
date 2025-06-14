@@ -72,19 +72,60 @@ export default function ShoppingTracker() {
 
   // Load data from localStorage on mount
   useEffect(() => {
-    const savedLists = localStorage.getItem("shoppingLists")
-    if (savedLists) {
-      const parsedLists = JSON.parse(savedLists).map((list: any) => ({
-        ...list,
-        createdAt: new Date(list.createdAt),
-      }))
-      setLists(parsedLists)
+    try {
+      const savedLists = localStorage.getItem("shoppingLists")
+      if (savedLists) {
+        const parsedLists = JSON.parse(savedLists).map((list: any) => ({
+          ...list,
+          createdAt: new Date(list.createdAt),
+        }))
+        setLists(parsedLists)
+      }
+    } catch (error) {
+      console.error("Error loading saved lists:", error)
+      // If there's an error, start with empty lists
+      setLists([])
     }
   }, [])
 
   // Save to localStorage whenever lists change
   useEffect(() => {
-    localStorage.setItem("shoppingLists", JSON.stringify(lists))
+    try {
+      localStorage.setItem("shoppingLists", JSON.stringify(lists))
+    } catch (error) {
+      console.error("Error saving lists:", error)
+    }
+  }, [lists])
+
+  // Save data when page becomes hidden (user switches tabs or closes browser)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        try {
+          localStorage.setItem("shoppingLists", JSON.stringify(lists))
+        } catch (error) {
+          console.error("Error saving on visibility change:", error)
+        }
+      }
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+
+    // Also save on beforeunload as a backup
+    const handleBeforeUnload = () => {
+      try {
+        localStorage.setItem("shoppingLists", JSON.stringify(lists))
+      } catch (error) {
+        console.error("Error saving on page unload:", error)
+      }
+    }
+
+    window.addEventListener("beforeunload", handleBeforeUnload)
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
+      window.removeEventListener("beforeunload", handleBeforeUnload)
+    }
   }, [lists])
 
   const addList = () => {
