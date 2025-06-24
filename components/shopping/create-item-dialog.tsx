@@ -65,7 +65,7 @@ export function CreateItemDialog({ listId }: CreateItemDialogProps) {
           Add Item
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-sm mx-auto">
+      <DialogContent className="max-w-sm mx-auto max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Item</DialogTitle>
         </DialogHeader>
@@ -128,12 +128,13 @@ export function CreateItemDialog({ listId }: CreateItemDialogProps) {
               onChange={(e) => setImageUrl(e.target.value)}
               placeholder="Paste image URL here..."
             />
+            {/* Larger mobile-friendly preview */}
             {imageUrl && (
-              <div className="mt-2">
+              <div className="mt-3">
                 <img
                   src={imageUrl || "/placeholder.svg"}
                   alt="Product preview"
-                  className="w-24 h-24 object-cover rounded border"
+                  className="w-full h-40 object-cover rounded-lg border shadow-sm"
                   onError={(e) => {
                     e.currentTarget.style.display = "none"
                   }}

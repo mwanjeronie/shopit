@@ -89,24 +89,29 @@ export function ItemCard({ item }: ItemCardProps) {
                   <h4 className={`font-medium ${item.completed ? "line-through text-gray-500" : "text-gray-900"}`}>
                     {item.name}
                   </h4>
+
+                  {/* Mobile-optimized image display */}
                   {item.image_url && (
-                    <img
-                      src={item.image_url || "/placeholder.svg"}
-                      alt={item.name}
-                      className="w-24 h-24 object-cover rounded mt-2"
-                      onError={(e) => {
-                        e.currentTarget.style.display = "none"
-                      }}
-                    />
+                    <div className="mt-3 mb-3">
+                      <img
+                        src={item.image_url || "/placeholder.svg"}
+                        alt={item.name}
+                        className="w-full max-w-xs h-48 sm:h-32 object-cover rounded-lg border shadow-sm"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none"
+                        }}
+                      />
+                    </div>
                   )}
-                  <div className="flex items-center gap-2 mt-1">
+
+                  <div className="flex items-center gap-2 mt-2">
                     <Badge variant="outline" className="text-xs">
                       {item.category}
                     </Badge>
                     <Badge className={`text-xs ${priorityConfig?.color}`}>{priorityConfig?.label}</Badge>
                     {item.quantity > 1 && <span className="text-xs text-gray-500">Qty: {item.quantity}</span>}
                   </div>
-                  {item.notes && <p className="text-sm text-gray-600 mt-1">{item.notes}</p>}
+                  {item.notes && <p className="text-sm text-gray-600 mt-2">{item.notes}</p>}
                 </div>
 
                 <div className="flex items-center gap-1 ml-2">
@@ -137,7 +142,7 @@ export function ItemCard({ item }: ItemCardProps) {
 
       {/* Edit Dialog */}
       <Dialog open={isEditing} onOpenChange={setIsEditing}>
-        <DialogContent className="max-w-sm mx-auto">
+        <DialogContent className="max-w-sm mx-auto max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Item</DialogTitle>
           </DialogHeader>
@@ -199,6 +204,19 @@ export function ItemCard({ item }: ItemCardProps) {
                 defaultValue={item.image_url || ""}
                 placeholder="Paste image URL here..."
               />
+              {/* Larger preview in edit dialog */}
+              {item.image_url && (
+                <div className="mt-3">
+                  <img
+                    src={item.image_url || "/placeholder.svg"}
+                    alt="Product preview"
+                    className="w-full h-40 object-cover rounded-lg border"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none"
+                    }}
+                  />
+                </div>
+              )}
             </div>
 
             <div className="flex gap-2">
