@@ -79,7 +79,7 @@ export async function getShoppingLists() {
       SELECT 
         sl.*,
         COUNT(si.id)::int as item_count,
-        COUNT(CASE WHEN si.completed = true THEN 1 END)::int as completed_count
+        COUNT(CASE WHEN si.status = 'done' THEN 1 END)::int as completed_count
       FROM shopping_lists sl
       LEFT JOIN shopping_items si ON sl.id = si.list_id
       WHERE sl.user_id = ${user.id}
@@ -164,8 +164,8 @@ export async function createShoppingItem(formData: FormData) {
     }
 
     await sql`
-      INSERT INTO shopping_items (list_id, name, quantity, category, notes, priority, image_url)
-      VALUES (${listId}, ${name}, ${quantity}, ${category}, ${notes || null}, ${priority}, ${imageUrl || null})
+      INSERT INTO shopping_items (list_id, name, quantity, category, notes, priority, image_url, status)
+      VALUES (${listId}, ${name}, ${quantity}, ${category}, ${notes || null}, ${priority}, ${imageUrl || null}, 'pending')
     `
 
     revalidatePath("/dashboard")
@@ -180,7 +180,7 @@ export async function createShoppingItem(formData: FormData) {
   }
 }
 
-export async function toggleItemComplete(itemId: string) {
+export async function updateItemStatus(itemId: string, status: "pending" | "done" | "shipped" | "failed") {
   const user = await getCurrentUser()
   if (!user) {
     throw new Error("Unauthorized")
@@ -189,7 +189,49 @@ export async function toggleItemComplete(itemId: string) {
   try {
     await sql`
       UPDATE shopping_items 
-      SET completed = NOT completed
+      SET status = ${status}, 
+          completed = ${status === "done"},
+          updated_at = NOW()
+      WHERE id = ${itemId}
+      AND list_id IN (
+        SELECT id FROM shopping_lists WHERE user_id = ${user.id}
+      )
+    `
+
+    revalidatePath("/dashboard")
+    return { success: true }
+  } catch (error) {
+    return { success: false }
+  }
+}
+
+export async function toggleItemComplete(itemId: string) {
+  const user = await getCurrentUser()
+  if (!user) {
+    throw new Error("Unauthorized")
+  }
+
+  try {
+    // Get current status
+    const currentItem = await sql`
+      SELECT status FROM shopping_items 
+      WHERE id = ${itemId}
+      AND list_id IN (
+        SELECT id FROM shopping_lists WHERE user_id = ${user.id}
+      )
+    `
+
+    if (currentItem.length === 0) {
+      return { success: false }
+    }
+
+    const newStatus = currentItem[0].status === "done" ? "pending" : "done"
+
+    await sql`
+      UPDATE shopping_items 
+      SET status = ${newStatus},
+          completed = ${newStatus === "done"},
+          updated_at = NOW()
       WHERE id = ${itemId}
       AND list_id IN (
         SELECT id FROM shopping_lists WHERE user_id = ${user.id}
@@ -266,8 +308,8 @@ export async function createBulkItems(listId: string, imageUrls: string[]) {
       const url = imageUrls[i].trim()
       if (url) {
         await sql`
-          INSERT INTO shopping_items (list_id, name, quantity, category, priority, image_url)
-          VALUES (${listId}, ${`Item ${i + 1}`}, 1, 'Sata', 'medium', ${url})
+          INSERT INTO shopping_items (list_id, name, quantity, category, priority, image_url, status)
+          VALUES (${listId}, ${`Item ${i + 1}`}, 1, 'Sata', 'medium', ${url}, 'pending')
         `
       }
     }
@@ -307,7 +349,8 @@ export async function updateShoppingItem(itemId: string, formData: FormData) {
           category = ${data.category}, 
           notes = ${data.notes || null}, 
           priority = ${data.priority}, 
-          image_url = ${data.imageUrl || null}
+          image_url = ${data.imageUrl || null},
+          updated_at = NOW()
       WHERE id = ${itemId}
       AND list_id IN (
         SELECT id FROM shopping_lists WHERE user_id = ${user.id}

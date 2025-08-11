@@ -24,12 +24,34 @@ interface ShoppingListViewProps {
       completed: boolean
       priority: "low" | "medium" | "high"
       image_url?: string
+      status?: "pending" | "done" | "shipped" | "failed"
     }>
   }
 }
 
 export function ShoppingListView({ list }: ShoppingListViewProps) {
-  const completedItems = list.items.filter((item) => item.completed).length
+  // Count items by status
+  const pendingItems = list.items.filter((item) => {
+    const status = item.status || (item.completed ? "done" : "pending")
+    return status === "pending"
+  }).length
+
+  const doneItems = list.items.filter((item) => {
+    const status = item.status || (item.completed ? "done" : "pending")
+    return status === "done"
+  }).length
+
+  const shippedItems = list.items.filter((item) => {
+    const status = item.status || (item.completed ? "done" : "pending")
+    return status === "shipped"
+  }).length
+
+  const failedItems = list.items.filter((item) => {
+    const status = item.status || (item.completed ? "done" : "pending")
+    return status === "failed"
+  }).length
+
+  const completedItems = doneItems + shippedItems
   const progress = list.items.length > 0 ? Math.round((completedItems / list.items.length) * 100) : 0
 
   return (
@@ -74,10 +96,22 @@ export function ShoppingListView({ list }: ShoppingListViewProps) {
 
           {/* Items List */}
           <Tabs defaultValue="all" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="all">All ({list.items.length})</TabsTrigger>
-              <TabsTrigger value="pending">Pending ({list.items.filter((item) => !item.completed).length})</TabsTrigger>
-              <TabsTrigger value="completed">Done ({completedItems})</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-5 text-xs">
+              <TabsTrigger value="all" className="px-1">
+                All ({list.items.length})
+              </TabsTrigger>
+              <TabsTrigger value="pending" className="px-1">
+                Pending ({pendingItems})
+              </TabsTrigger>
+              <TabsTrigger value="done" className="px-1">
+                Done ({doneItems})
+              </TabsTrigger>
+              <TabsTrigger value="shipped" className="px-1">
+                Shipped ({shippedItems})
+              </TabsTrigger>
+              <TabsTrigger value="failed" className="px-1">
+                Failed ({failedItems})
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="all" className="space-y-2 mt-4">
@@ -94,15 +128,43 @@ export function ShoppingListView({ list }: ShoppingListViewProps) {
 
             <TabsContent value="pending" className="space-y-2 mt-4">
               {list.items
-                .filter((item) => !item.completed)
+                .filter((item) => {
+                  const status = item.status || (item.completed ? "done" : "pending")
+                  return status === "pending"
+                })
                 .map((item) => (
                   <ItemCard key={item.id} item={item} />
                 ))}
             </TabsContent>
 
-            <TabsContent value="completed" className="space-y-2 mt-4">
+            <TabsContent value="done" className="space-y-2 mt-4">
               {list.items
-                .filter((item) => item.completed)
+                .filter((item) => {
+                  const status = item.status || (item.completed ? "done" : "pending")
+                  return status === "done"
+                })
+                .map((item) => (
+                  <ItemCard key={item.id} item={item} />
+                ))}
+            </TabsContent>
+
+            <TabsContent value="shipped" className="space-y-2 mt-4">
+              {list.items
+                .filter((item) => {
+                  const status = item.status || (item.completed ? "done" : "pending")
+                  return status === "shipped"
+                })
+                .map((item) => (
+                  <ItemCard key={item.id} item={item} />
+                ))}
+            </TabsContent>
+
+            <TabsContent value="failed" className="space-y-2 mt-4">
+              {list.items
+                .filter((item) => {
+                  const status = item.status || (item.completed ? "done" : "pending")
+                  return status === "failed"
+                })
                 .map((item) => (
                   <ItemCard key={item.id} item={item} />
                 ))}

@@ -9,8 +9,8 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { CheckCircle2, Circle, Trash2, Edit2 } from "lucide-react"
-import { toggleItemComplete, deleteShoppingItem, updateShoppingItem } from "@/app/actions/shopping"
+import { CheckCircle2, Circle, Trash2, Edit2, Truck, X } from "lucide-react"
+import { toggleItemComplete, deleteShoppingItem, updateShoppingItem, updateItemStatus } from "@/app/actions/shopping"
 
 const priorities = [
   { value: "low", label: "Low", color: "bg-green-100 text-green-800" },
@@ -19,6 +19,13 @@ const priorities = [
 ]
 
 const shopNames = ["Sata", "Retel", "Ritah", "Him3.0", "Other"]
+
+const statusConfig = {
+  pending: { icon: Circle, color: "text-gray-400", bgColor: "bg-gray-100", textColor: "text-gray-800" },
+  done: { icon: CheckCircle2, color: "text-green-500", bgColor: "bg-green-100", textColor: "text-green-800" },
+  shipped: { icon: Truck, color: "text-blue-500", bgColor: "bg-blue-100", textColor: "text-blue-800" },
+  failed: { icon: X, color: "text-red-500", bgColor: "bg-red-100", textColor: "text-red-800" },
+}
 
 interface ItemCardProps {
   item: {
@@ -30,6 +37,7 @@ interface ItemCardProps {
     completed: boolean
     priority: "low" | "medium" | "high"
     image_url?: string
+    status?: "pending" | "done" | "shipped" | "failed"
   }
 }
 
@@ -38,9 +46,20 @@ export function ItemCard({ item }: ItemCardProps) {
   const [isLoading, setIsLoading] = useState(false)
   const priorityConfig = priorities.find((p) => p.value === item.priority)
 
+  // Use status if available, otherwise fall back to completed field
+  const currentStatus = item.status || (item.completed ? "done" : "pending")
+  const statusInfo = statusConfig[currentStatus as keyof typeof statusConfig]
+  const StatusIcon = statusInfo.icon
+
   async function handleToggle() {
     setIsLoading(true)
     await toggleItemComplete(item.id)
+    setIsLoading(false)
+  }
+
+  async function handleStatusChange(newStatus: "pending" | "done" | "shipped" | "failed") {
+    setIsLoading(true)
+    await updateItemStatus(item.id, newStatus)
     setIsLoading(false)
   }
 
@@ -61,24 +80,22 @@ export function ItemCard({ item }: ItemCardProps) {
     setIsLoading(false)
   }
 
+  const isCompleted = currentStatus === "done" || currentStatus === "shipped"
+
   return (
     <>
-      <Card className={`${item.completed ? "opacity-60" : ""}`}>
+      <Card className={`${isCompleted ? "opacity-60" : ""}`}>
         <CardContent className="p-3">
           <div className="flex items-start gap-3">
             <button onClick={handleToggle} className="mt-1 flex-shrink-0" disabled={isLoading}>
-              {item.completed ? (
-                <CheckCircle2 className="h-5 w-5 text-green-500" />
-              ) : (
-                <Circle className="h-5 w-5 text-gray-400" />
-              )}
+              <StatusIcon className={`h-5 w-5 ${statusInfo.color}`} />
             </button>
 
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <h4 className={`font-medium ${item.completed ? "line-through text-gray-500" : "text-gray-900"}`}>
+                    <h4 className={`font-medium ${isCompleted ? "line-through text-gray-500" : "text-gray-900"}`}>
                       {item.name}
                     </h4>
                     {/* Big prominent quantity badge */}
@@ -106,7 +123,51 @@ export function ItemCard({ item }: ItemCardProps) {
                       {item.category}
                     </Badge>
                     <Badge className={`text-xs ${priorityConfig?.color}`}>{priorityConfig?.label}</Badge>
+                    <Badge className={`text-xs ${statusInfo.bgColor} ${statusInfo.textColor}`}>
+                      {currentStatus.charAt(0).toUpperCase() + currentStatus.slice(1)}
+                    </Badge>
                   </div>
+
+                  {/* Status change buttons */}
+                  <div className="flex items-center gap-1 mt-2">
+                    <Button
+                      size="sm"
+                      variant={currentStatus === "pending" ? "default" : "outline"}
+                      onClick={() => handleStatusChange("pending")}
+                      disabled={isLoading || currentStatus === "pending"}
+                      className="h-6 px-2 text-xs"
+                    >
+                      Pending
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={currentStatus === "done" ? "default" : "outline"}
+                      onClick={() => handleStatusChange("done")}
+                      disabled={isLoading || currentStatus === "done"}
+                      className="h-6 px-2 text-xs"
+                    >
+                      Done
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={currentStatus === "shipped" ? "default" : "outline"}
+                      onClick={() => handleStatusChange("shipped")}
+                      disabled={isLoading || currentStatus === "shipped"}
+                      className="h-6 px-2 text-xs"
+                    >
+                      Shipped
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={currentStatus === "failed" ? "default" : "outline"}
+                      onClick={() => handleStatusChange("failed")}
+                      disabled={isLoading || currentStatus === "failed"}
+                      className="h-6 px-2 text-xs"
+                    >
+                      Failed
+                    </Button>
+                  </div>
+
                   {item.notes && <p className="text-sm text-gray-600 mt-2">{item.notes}</p>}
                 </div>
 
