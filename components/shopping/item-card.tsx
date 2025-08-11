@@ -18,16 +18,7 @@ const priorities = [
   { value: "high", label: "High", color: "bg-red-100 text-red-800" },
 ]
 
-const categories = [
-  "Groceries",
-  "Electronics",
-  "Clothing",
-  "Home & Garden",
-  "Health & Beauty",
-  "Sports",
-  "Books",
-  "Other",
-]
+const shopNames = ["Sata", "Retel", "Ritah", "Him3.0", "Other"]
 
 interface ItemCardProps {
   item: {
@@ -86,17 +77,23 @@ export function ItemCard({ item }: ItemCardProps) {
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <h4 className={`font-medium ${item.completed ? "line-through text-gray-500" : "text-gray-900"}`}>
-                    {item.name}
-                  </h4>
+                  <div className="flex items-center gap-2 mb-2">
+                    <h4 className={`font-medium ${item.completed ? "line-through text-gray-500" : "text-gray-900"}`}>
+                      {item.name}
+                    </h4>
+                    {/* Big prominent quantity badge */}
+                    <Badge variant="default" className="bg-blue-600 text-white text-sm font-bold px-2 py-1">
+                      {item.quantity}x
+                    </Badge>
+                  </div>
 
-                  {/* Mobile-optimized image display */}
+                  {/* Square 1:1 aspect ratio image */}
                   {item.image_url && (
                     <div className="mt-3 mb-3">
                       <img
                         src={item.image_url || "/placeholder.svg"}
                         alt={item.name}
-                        className="w-full max-w-xs h-48 sm:h-32 object-cover rounded-lg border shadow-sm"
+                        className="w-full max-w-xs aspect-square object-cover rounded-lg border shadow-sm"
                         onError={(e) => {
                           e.currentTarget.style.display = "none"
                         }}
@@ -109,7 +106,6 @@ export function ItemCard({ item }: ItemCardProps) {
                       {item.category}
                     </Badge>
                     <Badge className={`text-xs ${priorityConfig?.color}`}>{priorityConfig?.label}</Badge>
-                    {item.quantity > 1 && <span className="text-xs text-gray-500">Qty: {item.quantity}</span>}
                   </div>
                   {item.notes && <p className="text-sm text-gray-600 mt-2">{item.notes}</p>}
                 </div>
@@ -175,15 +171,15 @@ export function ItemCard({ item }: ItemCardProps) {
             </div>
 
             <div>
-              <Label htmlFor="editCategory">Category</Label>
+              <Label htmlFor="editShop">Shop Name</Label>
               <Select name="category" defaultValue={item.category}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat}
+                  {shopNames.map((shop) => (
+                    <SelectItem key={shop} value={shop}>
+                      {shop}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -204,13 +200,13 @@ export function ItemCard({ item }: ItemCardProps) {
                 defaultValue={item.image_url || ""}
                 placeholder="Paste image URL here..."
               />
-              {/* Larger preview in edit dialog */}
+              {/* Square preview in edit dialog */}
               {item.image_url && (
                 <div className="mt-3">
                   <img
                     src={item.image_url || "/placeholder.svg"}
                     alt="Product preview"
-                    className="w-full h-40 object-cover rounded-lg border"
+                    className="w-full aspect-square object-cover rounded-lg border"
                     onError={(e) => {
                       e.currentTarget.style.display = "none"
                     }}

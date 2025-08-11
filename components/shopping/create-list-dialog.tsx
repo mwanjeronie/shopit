@@ -48,18 +48,6 @@ export function CreateListDialog() {
             {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name[0]}</p>}
           </div>
 
-          <div>
-            <Label htmlFor="store">Store Name</Label>
-            <Input id="store" name="store" placeholder="e.g., Walmart, Target" required autoComplete="off" />
-            {errors.store && <p className="text-sm text-red-600 mt-1">{errors.store[0]}</p>}
-          </div>
-
-          <div>
-            <Label htmlFor="location">Location (Optional)</Label>
-            <Input id="location" name="location" placeholder="e.g., Downtown, Mall" autoComplete="off" />
-            {errors.location && <p className="text-sm text-red-600 mt-1">{errors.location[0]}</p>}
-          </div>
-
           {errors._form && <p className="text-sm text-red-600">{errors._form[0]}</p>}
 
           <Button type="submit" className="w-full" disabled={isLoading}>

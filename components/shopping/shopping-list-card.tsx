@@ -4,7 +4,7 @@ import type React from "react"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Store, MapPin, Trash2 } from "lucide-react"
+import { Trash2 } from "lucide-react"
 import { deleteShoppingList } from "@/app/actions/shopping"
 import Link from "next/link"
 
@@ -38,17 +38,6 @@ export function ShoppingListCard({ list }: ShoppingListCardProps) {
           <div className="flex items-start justify-between mb-2">
             <div className="flex-1">
               <h3 className="font-semibold text-gray-900">{list.name}</h3>
-              <div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
-                <Store className="h-3 w-3" />
-                <span>{list.store}</span>
-                {list.location && (
-                  <>
-                    <span>•</span>
-                    <MapPin className="h-3 w-3" />
-                    <span>{list.location}</span>
-                  </>
-                )}
-              </div>
             </div>
             <Button variant="ghost" size="sm" onClick={handleDelete} className="text-red-500 hover:text-red-700">
               <Trash2 className="h-4 w-4" />

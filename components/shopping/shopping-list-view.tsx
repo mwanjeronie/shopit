@@ -2,9 +2,10 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Store, MapPin, ArrowLeft } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 import { CreateItemDialog } from "./create-item-dialog"
 import { BulkAddDialog } from "./bulk-add-dialog"
+import { GalleryDialog } from "./gallery-dialog"
 import { ItemCard } from "./item-card"
 import Link from "next/link"
 
@@ -44,20 +45,10 @@ export function ShoppingListView({ list }: ShoppingListViewProps) {
             </Link>
             <div className="flex-1">
               <h2 className="font-semibold text-gray-900">{list.name}</h2>
-              <div className="flex items-center gap-1 text-sm text-gray-600">
-                <Store className="h-3 w-3" />
-                <span>{list.store}</span>
-                {list.location && (
-                  <>
-                    <span>•</span>
-                    <MapPin className="h-3 w-3" />
-                    <span>{list.location}</span>
-                  </>
-                )}
-              </div>
             </div>
             <div className="flex gap-2">
               <CreateItemDialog listId={list.id} />
+              <GalleryDialog listId={list.id} />
               <BulkAddDialog listId={list.id} />
             </div>
           </div>

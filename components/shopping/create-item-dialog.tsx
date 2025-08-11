@@ -10,16 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Plus } from "lucide-react"
 
-const categories = [
-  "Groceries",
-  "Electronics",
-  "Clothing",
-  "Home & Garden",
-  "Health & Beauty",
-  "Sports",
-  "Books",
-  "Other",
-]
+const shopNames = ["Sata", "Retel", "Ritah", "Him3.0", "Other"]
 
 const priorities = [
   { value: "low", label: "Low" },
@@ -82,15 +73,15 @@ export function CreateItemDialog({ listId }: CreateItemDialogProps) {
           </div>
 
           <div>
-            <Label htmlFor="category">Category</Label>
-            <Select name="category" defaultValue="Other">
+            <Label htmlFor="category">Shop Name</Label>
+            <Select name="category" defaultValue="Sata">
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {categories.map((cat) => (
-                  <SelectItem key={cat} value={cat}>
-                    {cat}
+                {shopNames.map((shop) => (
+                  <SelectItem key={shop} value={shop}>
+                    {shop}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -128,13 +119,13 @@ export function CreateItemDialog({ listId }: CreateItemDialogProps) {
               onChange={(e) => setImageUrl(e.target.value)}
               placeholder="Paste image URL here..."
             />
-            {/* Larger mobile-friendly preview */}
+            {/* Square 1:1 aspect ratio preview */}
             {imageUrl && (
               <div className="mt-3">
                 <img
                   src={imageUrl || "/placeholder.svg"}
                   alt="Product preview"
-                  className="w-full h-40 object-cover rounded-lg border shadow-sm"
+                  className="w-full aspect-square object-cover rounded-lg border shadow-sm"
                   onError={(e) => {
                     e.currentTarget.style.display = "none"
                   }}

@@ -7,15 +7,13 @@ import { z } from "zod"
 
 const createListSchema = z.object({
   name: z.string().min(1, "List name is required"),
-  store: z.string().min(1, "Store name is required"),
-  location: z.string().optional(),
 })
 
 const createItemSchema = z.object({
   listId: z.string().min(1, "List ID is required"),
   name: z.string().min(1, "Item name is required"),
   quantity: z.number().min(1).default(1),
-  category: z.string().default("Other"),
+  category: z.string().default("Sata"),
   notes: z.string().optional(),
   priority: z.enum(["low", "medium", "high"]).default("medium"),
   imageUrl: z.string().optional(),
@@ -34,14 +32,10 @@ export async function createShoppingList(formData: FormData) {
 
   const validatedFields = createListSchema.safeParse({
     name: formData.get("name"),
-    store: formData.get("store"),
-    location: formData.get("location") || "",
   })
 
   console.log("Form data:", {
     name: formData.get("name"),
-    store: formData.get("store"),
-    location: formData.get("location"),
   })
 
   if (!validatedFields.success) {
@@ -51,13 +45,13 @@ export async function createShoppingList(formData: FormData) {
     }
   }
 
-  const { name, store, location } = validatedFields.data
+  const { name } = validatedFields.data
 
   try {
     console.log("Inserting into database...")
     const result = await sql`
       INSERT INTO shopping_lists (user_id, name, store, location)
-      VALUES (${user.id}, ${name}, ${store}, ${location || null})
+      VALUES (${user.id}, ${name}, '', '')
       RETURNING id
     `
 
@@ -142,7 +136,7 @@ export async function createShoppingItem(formData: FormData) {
     listId: formData.get("listId") as string,
     name: formData.get("name") as string,
     quantity: Number(formData.get("quantity")) || 1,
-    category: (formData.get("category") as string) || "Other",
+    category: (formData.get("category") as string) || "Sata",
     notes: (formData.get("notes") as string) || "",
     priority: (formData.get("priority") as "low" | "medium" | "high") || "medium",
     imageUrl: (formData.get("imageUrl") as string) || "",
@@ -273,7 +267,7 @@ export async function createBulkItems(listId: string, imageUrls: string[]) {
       if (url) {
         await sql`
           INSERT INTO shopping_items (list_id, name, quantity, category, priority, image_url)
-          VALUES (${listId}, ${`Item ${i + 1}`}, 1, 'Other', 'medium', ${url})
+          VALUES (${listId}, ${`Item ${i + 1}`}, 1, 'Sata', 'medium', ${url})
         `
       }
     }
@@ -299,7 +293,7 @@ export async function updateShoppingItem(itemId: string, formData: FormData) {
   const data = {
     name: formData.get("name") as string,
     quantity: Number(formData.get("quantity")) || 1,
-    category: (formData.get("category") as string) || "Other",
+    category: (formData.get("category") as string) || "Sata",
     notes: (formData.get("notes") as string) || "",
     priority: (formData.get("priority") as "low" | "medium" | "high") || "medium",
     imageUrl: (formData.get("imageUrl") as string) || "",
