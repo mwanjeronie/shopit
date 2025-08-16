@@ -543,7 +543,7 @@ export async function deleteShoppingItem(itemId: string) {
   }
 }
 
-export async function createBulkItems(listId: string, imageUrls: string[]) {
+export async function createBulkItems(listId: string, imageUrls: string[], category = "Sata") {
   const user = await getCurrentUser()
   if (!user) {
     throw new Error("Unauthorized")
@@ -560,20 +560,41 @@ export async function createBulkItems(listId: string, imageUrls: string[]) {
       throw new Error("List not found")
     }
 
+    // Check if unit columns exist
+    const columnCheck = await sql`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'shopping_items' 
+      AND column_name IN ('pending_units', 'done_units', 'shipped_units', 'success_units', 'failed_units')
+    `
+
+    const hasUnitColumns = columnCheck.length === 5
+
     // Insert multiple items
     for (let i = 0; i < imageUrls.length; i++) {
       const url = imageUrls[i].trim()
       if (url) {
-        await sql`
-          INSERT INTO shopping_items (
-            list_id, name, quantity, category, priority, image_url, status, quality,
-            pending_units, done_units, shipped_units, success_units, failed_units
-          )
-          VALUES (
-            ${listId}, ${`Item ${i + 1}`}, 1, 'Sata', 'medium', ${url}, 'pending', 'Standard',
-            1, 0, 0, 0, 0
-          )
-        `
+        if (hasUnitColumns) {
+          await sql`
+            INSERT INTO shopping_items (
+              list_id, name, quantity, category, priority, image_url, status, quality,
+              pending_units, done_units, shipped_units, success_units, failed_units
+            )
+            VALUES (
+              ${listId}, ${`Item ${i + 1}`}, 1, ${category}, 'medium', ${url}, 'pending', 'Standard',
+              1, 0, 0, 0, 0
+            )
+          `
+        } else {
+          await sql`
+            INSERT INTO shopping_items (
+              list_id, name, quantity, category, priority, image_url, status, quality
+            )
+            VALUES (
+              ${listId}, ${`Item ${i + 1}`}, 1, ${category}, 'medium', ${url}, 'pending', 'Standard'
+            )
+          `
+        }
       }
     }
 
