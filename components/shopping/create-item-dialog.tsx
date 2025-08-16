@@ -18,6 +18,8 @@ const priorities = [
   { value: "high", label: "High" },
 ]
 
+const qualityOptions = ["Standard", "Premium", "Budget", "Organic", "Large", "Small", "Extra Large", "Family Size"]
+
 interface CreateItemDialogProps {
   listId: string
 }
@@ -67,9 +69,26 @@ export function CreateItemDialog({ listId }: CreateItemDialogProps) {
             {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name[0]}</p>}
           </div>
 
-          <div>
-            <Label htmlFor="quantity">Quantity</Label>
-            <Input id="quantity" name="quantity" type="number" min="1" defaultValue="1" placeholder="1" />
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label htmlFor="quantity">Quantity</Label>
+              <Input id="quantity" name="quantity" type="number" min="1" defaultValue="1" placeholder="1" />
+            </div>
+            <div>
+              <Label htmlFor="quality">Quality</Label>
+              <Select name="quality" defaultValue="Standard">
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {qualityOptions.map((quality) => (
+                    <SelectItem key={quality} value={quality}>
+                      {quality}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div>
