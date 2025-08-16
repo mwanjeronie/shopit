@@ -8,6 +8,7 @@ import { BulkAddDialog } from "./bulk-add-dialog"
 import { GalleryDialog } from "./gallery-dialog"
 import { ItemCard } from "./item-card"
 import Link from "next/link"
+import { useState } from "react"
 
 interface ShoppingListViewProps {
   list: {
@@ -36,6 +37,8 @@ interface ShoppingListViewProps {
 }
 
 export function ShoppingListView({ list }: ShoppingListViewProps) {
+  const [activeTab, setActiveTab] = useState("all")
+
   // Check if any item has unit columns
   const hasUnitColumns = list.items.some((item) => item.pending_units !== undefined)
 
@@ -204,26 +207,37 @@ export function ShoppingListView({ list }: ShoppingListViewProps) {
             </CardContent>
           </Card>
 
-          {/* Items List */}
+          {/* Items List with improved tab layout */}
           <Tabs defaultValue="all" className="w-full">
-            <TabsList className="grid w-full grid-cols-6 text-xs">
-              <TabsTrigger value="all" className="px-1">
-                All ({list.items.length})
+            {/* Primary tabs - most important ones */}
+            <TabsList className="grid w-full grid-cols-3 h-auto p-1 mb-2">
+              <TabsTrigger value="all" className="flex flex-col items-center gap-1 py-2 px-2 text-xs">
+                <span className="font-medium">All</span>
+                <span className="text-xs opacity-75">({list.items.length})</span>
               </TabsTrigger>
-              <TabsTrigger value="pending" className="px-1">
-                Pending ({pendingItems.length})
+              <TabsTrigger value="pending" className="flex flex-col items-center gap-1 py-2 px-2 text-xs">
+                <span className="font-medium">Pending</span>
+                <span className="text-xs opacity-75">({pendingItems.length})</span>
               </TabsTrigger>
-              <TabsTrigger value="done" className="px-1">
-                Done ({doneItems.length})
+              <TabsTrigger value="active" className="flex flex-col items-center gap-1 py-2 px-2 text-xs">
+                <span className="font-medium">In Progress</span>
+                <span className="text-xs opacity-75">({doneItems.length + shippedItems.length})</span>
               </TabsTrigger>
-              <TabsTrigger value="shipped" className="px-1">
-                Shipped ({shippedItems.length})
+            </TabsList>
+
+            {/* Secondary tabs - status specific */}
+            <TabsList className="grid w-full grid-cols-3 h-auto p-1 bg-gray-100">
+              <TabsTrigger value="done" className="flex flex-col items-center gap-1 py-2 px-2 text-xs">
+                <span className="font-medium">Done</span>
+                <span className="text-xs opacity-75">({doneItems.length})</span>
               </TabsTrigger>
-              <TabsTrigger value="success" className="px-1">
-                Success ({successItems.length})
+              <TabsTrigger value="shipped" className="flex flex-col items-center gap-1 py-2 px-2 text-xs">
+                <span className="font-medium">Shipped</span>
+                <span className="text-xs opacity-75">({shippedItems.length})</span>
               </TabsTrigger>
-              <TabsTrigger value="failed" className="px-1">
-                Failed ({failedItems.length})
+              <TabsTrigger value="success" className="flex flex-col items-center gap-1 py-2 px-2 text-xs">
+                <span className="font-medium">Success</span>
+                <span className="text-xs opacity-75">({successItems.length})</span>
               </TabsTrigger>
             </TabsList>
 
@@ -245,6 +259,12 @@ export function ShoppingListView({ list }: ShoppingListViewProps) {
               ))}
             </TabsContent>
 
+            <TabsContent value="active" className="space-y-2 mt-4">
+              {[...doneItems, ...shippedItems].map((item) => (
+                <ItemCard key={item.id} item={item} />
+              ))}
+            </TabsContent>
+
             <TabsContent value="done" className="space-y-2 mt-4">
               {doneItems.map((item) => (
                 <ItemCard key={item.id} item={item} />
@@ -259,12 +279,6 @@ export function ShoppingListView({ list }: ShoppingListViewProps) {
 
             <TabsContent value="success" className="space-y-2 mt-4">
               {successItems.map((item) => (
-                <ItemCard key={item.id} item={item} />
-              ))}
-            </TabsContent>
-
-            <TabsContent value="failed" className="space-y-2 mt-4">
-              {failedItems.map((item) => (
                 <ItemCard key={item.id} item={item} />
               ))}
             </TabsContent>

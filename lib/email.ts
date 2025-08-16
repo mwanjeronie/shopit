@@ -5,6 +5,7 @@ export async function sendVerificationEmail(email: string, token: string) {
   // For development, we'll just log the verification link
   const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/auth/verify-email?token=${token}`
 
+  // Log to server console (you'll see this in your terminal/development server)
   console.log(`
     📧 Email Verification Required
     ================================
@@ -18,6 +19,9 @@ export async function sendVerificationEmail(email: string, token: string) {
     
     If you didn't create an account, please ignore this email.
   `)
+
+  // Also log just the URL for easy copying
+  console.log(`🔗 Verification URL: ${verificationUrl}`)
 
   // In production, replace this with actual email sending:
   /*
@@ -42,8 +46,11 @@ export async function sendVerificationEmail(email: string, token: string) {
   }
   */
 
-  // For development, always return success
-  return { success: true }
+  // For development, always return success and include the URL
+  return {
+    success: true,
+    verificationUrl: process.env.NODE_ENV === "development" ? verificationUrl : undefined,
+  }
 }
 
 export function generateVerificationToken(): string {
