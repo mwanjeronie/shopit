@@ -74,52 +74,11 @@ export async function addItemFromGallery(galleryItemId: string, listId: string, 
       throw new Error("List not found")
     }
 
-    // Check which columns exist in shopping_items table
-    const columnCheck = await sql`
-      SELECT column_name 
-      FROM information_schema.columns 
-      WHERE table_name = 'shopping_items' 
-      AND column_name IN ('pending_units', 'done_units', 'shipped_units', 'success_units', 'failed_units', 'quality', 'status')
+    // Add item to shopping list
+    await sql`
+      INSERT INTO shopping_items (list_id, name, quantity, category, priority, image_url)
+      VALUES (${listId}, ${item.name}, ${quantity}, ${item.category}, ${item.priority}, ${item.image_url})
     `
-
-    const existingColumns = columnCheck.map((row) => row.column_name)
-    const hasUnitColumns = ["pending_units", "done_units", "shipped_units", "success_units", "failed_units"].every(
-      (col) => existingColumns.includes(col),
-    )
-    const hasQualityColumn = existingColumns.includes("quality")
-    const hasStatusColumn = existingColumns.includes("status")
-
-    // Build the insert query dynamically based on available columns
-    let insertQuery = `
-      INSERT INTO shopping_items (
-        list_id, name, quantity, category, priority, image_url
-    `
-    let valuesQuery = `
-      VALUES (
-        ${listId}, ${item.name}, ${quantity}, ${item.category}, ${item.priority}, ${item.image_url}
-    `
-
-    // Add optional columns if they exist
-    if (hasStatusColumn) {
-      insertQuery += `, status`
-      valuesQuery += `, 'pending'`
-    }
-
-    if (hasQualityColumn) {
-      insertQuery += `, quality`
-      valuesQuery += `, 'Standard'`
-    }
-
-    if (hasUnitColumns) {
-      insertQuery += `, pending_units, done_units, shipped_units, success_units, failed_units`
-      valuesQuery += `, ${quantity}, 0, 0, 0, 0`
-    }
-
-    insertQuery += `) `
-    valuesQuery += `)`
-
-    // Execute the dynamic insert
-    await sql.unsafe(insertQuery + valuesQuery)
 
     // Update usage count
     await sql`
