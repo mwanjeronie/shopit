@@ -13,6 +13,16 @@ export function CreateListDialog() {
   const [errors, setErrors] = useState<any>({})
   const [isLoading, setIsLoading] = useState(false)
 
+  // Generate default name based on current date
+  const generateDefaultName = () => {
+    const now = new Date()
+    const month = now.toLocaleDateString("en-US", { month: "short" })
+    const day = now.getDate()
+    return `${month} ${day}`
+  }
+
+  const [listName, setListName] = useState(generateDefaultName())
+
   async function handleSubmit(formData: FormData) {
     setIsLoading(true)
     setErrors({})
@@ -23,14 +33,24 @@ export function CreateListDialog() {
       setErrors(result.errors)
     } else if (result?.success) {
       setOpen(false)
-      // Reset form by closing dialog
+      // Reset form and generate new default name
+      setListName(generateDefaultName())
     }
 
     setIsLoading(false)
   }
 
+  // Reset name when dialog opens
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen)
+    if (newOpen) {
+      setListName(generateDefaultName())
+      setErrors({})
+    }
+  }
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button size="sm">
           <Plus className="h-4 w-4 mr-1" />
@@ -44,7 +64,15 @@ export function CreateListDialog() {
         <form action={handleSubmit} className="space-y-4">
           <div>
             <Label htmlFor="name">List Name</Label>
-            <Input id="name" name="name" placeholder="e.g., Weekly Groceries" required autoComplete="off" />
+            <Input
+              id="name"
+              name="name"
+              value={listName}
+              onChange={(e) => setListName(e.target.value)}
+              placeholder="e.g., Weekly Groceries"
+              required
+              autoComplete="off"
+            />
             {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name[0]}</p>}
           </div>
 

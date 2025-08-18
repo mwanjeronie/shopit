@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { ShoppingListCard } from "@/components/shopping/shopping-list-card"
 import { CreateListDialog } from "@/components/shopping/create-list-dialog"
+import { GalleryDialog } from "@/components/shopping/gallery-dialog"
 import { SignOutButton } from "@/components/auth/signout-button"
 import { Store, ShoppingCart } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -29,6 +30,7 @@ export default async function DashboardPage() {
             </div>
             <div className="flex items-center gap-2">
               <CreateListDialog />
+              <GalleryDialog />
               <SignOutButton />
             </div>
           </div>

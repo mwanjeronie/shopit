@@ -18,6 +18,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Images, Plus, Edit2, Trash2, Check, RefreshCw } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 const shopNames = ["Sata", "Retel", "Ritah", "Him3.0", "Other"]
 const priorities = [
@@ -36,7 +37,7 @@ interface GalleryItem {
 }
 
 interface GalleryDialogProps {
-  listId: string
+  listId?: string // Make optional for dashboard usage
 }
 
 export function GalleryDialog({ listId }: GalleryDialogProps) {
@@ -47,6 +48,7 @@ export function GalleryDialog({ listId }: GalleryDialogProps) {
   const [selectedQuantities, setSelectedQuantities] = useState<Record<string, number>>({})
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const router = useRouter()
 
   useEffect(() => {
     if (open) {
@@ -82,6 +84,12 @@ export function GalleryDialog({ listId }: GalleryDialogProps) {
   }
 
   async function handleAddFromGallery(galleryItemId: string) {
+    // If no listId provided (called from dashboard), show error
+    if (!listId) {
+      setError("Please open a specific shopping list to add items from gallery")
+      return
+    }
+
     setIsLoading(true)
     const quantity = selectedQuantities[galleryItemId] || 1
     const result = await addItemFromGallery(galleryItemId, listId, quantity)
@@ -93,6 +101,15 @@ export function GalleryDialog({ listId }: GalleryDialogProps) {
       )
       // Reset quantity
       setSelectedQuantities((prev) => ({ ...prev, [galleryItemId]: 1 }))
+      setSuccessMessage("Item added to list successfully!")
+
+      // Auto-close dialog after successful add
+      setTimeout(() => {
+        setOpen(false)
+        setSuccessMessage(null)
+      }, 1000)
+    } else {
+      setError("Failed to add item to list")
     }
     setIsLoading(false)
   }
@@ -140,22 +157,38 @@ export function GalleryDialog({ listId }: GalleryDialogProps) {
         </DialogTrigger>
         <DialogContent className="max-w-md mx-auto max-h-[90vh] overflow-hidden">
           <DialogHeader>
-            <DialogTitle>Item Gallery</DialogTitle>
+            <DialogTitle>
+              Item Gallery
+              {listId && <span className="text-sm font-normal text-gray-500 block">Adding to current list</span>}
+              {!listId && <span className="text-sm font-normal text-orange-600 block">⚠️ Open a list to add items</span>}
+            </DialogTitle>
           </DialogHeader>
 
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-md p-3">
               <p className="text-sm text-red-600">{error}</p>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleInitializeGallery}
-                className="mt-2 bg-transparent"
-                disabled={isLoading}
-              >
-                <RefreshCw className="h-3 w-3 mr-1" />
-                {isLoading ? "Initializing..." : "Initialize Gallery"}
-              </Button>
+              {!listId && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => router.push("/dashboard")}
+                  className="mt-2 bg-transparent"
+                >
+                  Go to Dashboard
+                </Button>
+              )}
+              {listId && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleInitializeGallery}
+                  className="mt-2 bg-transparent"
+                  disabled={isLoading}
+                >
+                  <RefreshCw className="h-3 w-3 mr-1" />
+                  {isLoading ? "Initializing..." : "Initialize Gallery"}
+                </Button>
+              )}
             </div>
           )}
 
@@ -227,11 +260,11 @@ export function GalleryDialog({ listId }: GalleryDialogProps) {
                                 <Button
                                   size="sm"
                                   onClick={() => handleAddFromGallery(item.id)}
-                                  disabled={isLoading}
+                                  disabled={isLoading || !listId}
                                   className="h-8"
                                 >
                                   <Check className="h-3 w-3 mr-1" />
-                                  Add
+                                  {listId ? "Add" : "Select List First"}
                                 </Button>
                               </div>
                             </div>
